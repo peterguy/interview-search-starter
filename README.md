@@ -5,7 +5,7 @@ A minimal Go HTTP service that searches a single Git repository using `git grep`
 ## Usage
 
 ```bash
-go run main.go --root ~/sourcegraph --port 8080
+go run main.go --root ~/src --port 8080
 ```
 
 **Flags:**
@@ -25,7 +25,7 @@ Search a single repository.
 **Example:**
 
 ```bash
-curl "http://localhost:8080/search?query=func+main&repo=sourcegraph"
+curl "http://localhost:8080/search?query=func+main&repo=myrepo"
 ```
 
 **Response:**
