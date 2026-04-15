@@ -34,6 +34,7 @@ func main() {
 	}
 
 	http.HandleFunc("/search", handleSearch)
+	http.Handle("/", http.FileServer(http.Dir("static")))
 
 	addr := fmt.Sprintf(":%d", *port)
 	log.Printf("Listening on %s (root: %s)", addr, rootDir)

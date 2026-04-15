@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Search</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #333; }
+  h1 { margin-bottom: 20px; }
+  form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  input[type="text"] { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; flex: 1; min-width: 150px; }
+  button { padding: 8px 20px; background: #0066cc; color: #fff; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; }
+  button:hover { background: #0052a3; }
+  .error { color: #c00; background: #fee; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+  .info { color: #666; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee; }
+  th { background: #f5f5f5; position: sticky; top: 0; }
+  td.content { font-family: monospace; white-space: pre-wrap; word-break: break-all; }
+  td.score { width: 60px; }
+  td.line { width: 50px; }
+</style>
+</head>
+<body>
+<h1>Code Search</h1>
+<form id="searchForm">
+  <input type="text" id="query" name="query" placeholder="Query" required>
+  <input type="text" id="repo" name="repo" placeholder="Repo" required>
+  <button type="submit">Search</button>
+</form>
+<div id="results"></div>
+<script>
+document.getElementById('searchForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = document.getElementById('query').value.trim();
+  const r = document.getElementById('repo').value.trim();
+  const out = document.getElementById('results');
+  out.innerHTML = '<p class="info">Searching…</p>';
+  try {
+    const resp = await fetch('/search?query=' + encodeURIComponent(q) + '&repo=' + encodeURIComponent(r));
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } catch { throw new Error(text); }
+    if (!resp.ok) throw new Error(data.error || text);
+    if (!data || data.length === 0) {
+      out.innerHTML = '<p class="info">No results found.</p>';
+      return;
+    }
+    let html = '<table><tr><th>File</th><th>Line</th><th>Content</th><th>Score</th></tr>';
+    for (const r of data) {
+      html += '<tr><td>' + esc(r.file) + '</td><td class="line">' + r.line +
+        '</td><td class="content">' + esc(r.content) + '</td><td class="score">' +
+        r.score.toFixed(2) + '</td></tr>';
+    }
+    html += '</table>';
+    out.innerHTML = html;
+  } catch (err) {
+    out.innerHTML = '<div class="error">' + esc(err.message) + '</div>';
+  }
+});
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+</script>
+</body>
+</html>
